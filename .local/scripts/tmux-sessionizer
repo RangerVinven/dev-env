@@ -15,7 +15,7 @@ switch_to() {
     fi
 }
 
-if tmux has-session -t=$selected_name; then
+if tmux has-session -t=$selected_name 2> /dev/null; then
     switch_to
     exit 0
 fi
