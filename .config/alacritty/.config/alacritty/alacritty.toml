@@ -1,0 +1,53 @@
+[terminal]
+[terminal.shell]
+program = "/bin/zsh"
+args = ["--login"]
+
+[window]
+opacity = 0.95
+
+[font]
+normal       = { family = "Hack Nerd Font", style = "Regular" }
+bold         = { family = "Hack Nerd Font", style = "Bold" }
+italic       = { family = "Hack Nerd Font", style = "Italic" }
+bold_italic  = { family = "Hack Nerd Font", style = "Bold Italic" }
+size         = 16
+
+[[keyboard.bindings]]
+key = "Left"
+mods = "Control"
+chars = "\u001b[1;5D"
+
+[[keyboard.bindings]]
+key = "Right"
+mods = "Control"
+chars = "\u001b[1;5C"
+
+[[keyboard.bindings]]
+key = "Up"
+mods = "Control"
+chars = "\u001b[1;5A"
+
+[[keyboard.bindings]]
+key = "Down"
+mods = "Control"
+chars = "\u001b[1;5B"
+
+
+# Sets copy-paste to control-c and control-v
+# and has control-shift-c do the keyboard interrupt
+[[keyboard.bindings]]
+key = "C"
+mods = "Control"
+action = "Copy"
+
+[[keyboard.bindings]]
+key = "V"
+mods = "Control"
+action = "Paste"
+
+[[keyboard.bindings]]
+key = "C"
+mods = "Control|Shift"
+chars = "\u0003"  # sends ASCII code 3 (Ctrl+C / SIGINT)
+
