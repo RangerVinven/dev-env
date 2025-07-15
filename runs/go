@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+git clone https://go.googlesource.com/go $HOME/programs/goroot
+cd $HOME/programs/goroot/src
+./all.bash

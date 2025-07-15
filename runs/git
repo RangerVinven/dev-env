@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+# To download the dev-env files, git must already be installed, this assumes it is
+git config --global credential.helper store

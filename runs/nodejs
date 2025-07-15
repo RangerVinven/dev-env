@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+sudo dnf install python3 gcc-c++ make python3-pip
+git clone https://github.com/nodejs/node $HOME/programs/node
+
+export CXX=g++-12
+./configure
+make -j4
+sudo make install

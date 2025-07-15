@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+git clone https://github.com/i3/i3.git $HOME/programs/i3
+
+make CMAKE_BUILD_TYPE=RelWithDebInfo
+sudo make install

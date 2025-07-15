@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+git clone --recursive https://github.com/polybar/polybar $HOME/programs/polybar
+sudo dnf install -y gcc-c++ clang git cmake @development-tools python3-sphinx python3-packaging
+sudo dnf install -y cairo-devel libuv-devel xcb-util-devel libxcb-devel xcb-proto xcb-util-image-devel xcb-util-wm-devel
+cd $HOME/programs/polybar
+
+mkdir build
+cd build
+cmake ..
+make -j$(nproc)
+sudo make install
