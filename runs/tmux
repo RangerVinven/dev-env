@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 git clone https://github.com/tmux/tmux.git $HOME/programs/tmux
+sudo dnf install -y aclocal libevent-devel ncurses-devel gcc make bison pkg-config
 cd $HOME/programs/tmux
 sh autogen.sh
 ./configure
