@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
 git clone https://github.com/i3/i3.git $HOME/programs/i3
+sudo dnf install -y @development-tools git meson pango-devel libxcb-devel xcb-util-keysyms-devel xcb-util-devel xcb-util-wm-devel xcb-util-xrm-devel yajl-devel libxkbcommon-devel libev-devel startup-notification-devel pcre2-devel xcb-util-cursor-devel libxkbcommon-x11-devel perl-ExtUtils-MakeMaker
 
-make CMAKE_BUILD_TYPE=RelWithDebInfo
-sudo make install
+cd $HOME/programs/i3
+meson setup build
+ninja -C build
+sudo ninja -C build install
