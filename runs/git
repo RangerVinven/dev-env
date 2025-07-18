@@ -2,3 +2,4 @@
 
 # To download the dev-env files, git must already be installed, this assumes it is
 git config --global credential.helper store
+git config --global core.editor "nvim"
