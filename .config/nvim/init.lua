@@ -2,9 +2,21 @@ vim.cmd("set expandtab")
 vim.cmd("set tabstop=4")
 vim.cmd("set softtabstop=4")
 vim.cmd("set shiftwidth=4")
+
 vim.opt.number = true
 vim.opt.relativenumber = true
 vim.opt.clipboard:append { 'unnamedplus' }
+vim.opt.foldenable = false
+
+vim.opt.hlsearch = false
+vim.opt.incsearch = true
+
+vim.opt.termguicolors = true
+vim.opt.scrolloff = 8
+vim.opt.signcolumn = "yes"
+vim.opt.isfname:append("@-@")
+
+vim.updatetime = 50
 
 -- Tells neovim to not paint a background (allows for transparency)
 vim.cmd [[
@@ -255,7 +267,7 @@ vim.keymap.set('n', 'K', vim.lsp.buf.hover, { desc = 'Hover documentation' }) --
 vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, { desc = 'Rename symbol' }) -- Renames a function or variable throughout the project
 vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, { desc = 'Code actions' }) -- Triggers automatic fixes, applying imports, etc
 
-vim.keymap.set('n', '<leader>ge', vim.diagnostic.open_float, { desc = 'Show error message' })
+vim.keymap.set('n', '<C-e>', vim.diagnostic.open_float, { desc = 'Show error message' })
 vim.keymap.set('n', '<leader>ne', vim.diagnostic.goto_next, { desc = 'Show next error message' })
 vim.keymap.set('n', '<leader>pe', vim.diagnostic.goto_prev, { desc = 'Show previous error message' })
 
