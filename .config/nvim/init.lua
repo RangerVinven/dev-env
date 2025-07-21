@@ -176,7 +176,7 @@ vim.keymap.set('n', '<leader>fg', builtin.live_grep, { desc = 'Live grep' })
 -- Setup treesitter
 local config = require("nvim-treesitter.configs")
 config.setup({
-    ensure_installed = {"lua", "javascript", "python", "java", "typescript", "tsx"}, -- Added tsx
+    ensure_installed = {"lua", "javascript", "python", "java", "typescript", "tsx", "go", "gomod", "gosum"}, -- Added tsx
     highlight = { enable = true },
     indent = { enable = true }
 })
@@ -291,7 +291,6 @@ vim.keymap.set("n", "n", "nzzzv")
 vim.keymap.set("n", "N", "Nzzzv")
 
 vim.keymap.set("x", "p", "\"_dP")
-vim.keymap.set("v", "d", "\"_d")
 
 vim.keymap.set("n", "<leader>y", "\"+y")
 vim.keymap.set("v", "<leader>y", "\"+y")
@@ -305,3 +304,4 @@ vim.keymap.set("n", "<leader>k", "<cmd>lnext<CR>zz")
 vim.keymap.set("n", "<leader>j", "<cmd>lprev<CR>zz")
 
 vim.keymap.set("n", "<leader>s", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]])
+
