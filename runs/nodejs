@@ -5,5 +5,5 @@ git clone https://github.com/nodejs/node $HOME/programs/node
 
 export CXX=g++-12
 ./configure
-make -j4
+make -j
 sudo make install
