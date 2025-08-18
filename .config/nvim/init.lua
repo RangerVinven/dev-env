@@ -176,7 +176,7 @@ vim.keymap.set('n', '<leader>fg', builtin.live_grep, { desc = 'Live grep' })
 -- Setup treesitter
 local config = require("nvim-treesitter.configs")
 config.setup({
-    ensure_installed = {"lua", "javascript", "python", "java", "typescript", "tsx", "go", "gomod", "gosum"}, -- Added tsx
+    ensure_installed = {"lua", "javascript", "python", "java", "typescript", "tsx", "go", "gomod", "gosum" }, -- Added tsx
     highlight = { enable = true },
     indent = { enable = true }
 })
@@ -186,7 +186,7 @@ config.setup({
 -- Mason Setup (LSP installer)
 require("mason").setup()
 require("mason-lspconfig").setup({
-    ensure_installed = { "lua_ls", "pyright", "ts_ls", "gopls", "tailwindcss", "html", "emmet_ls" }, 
+    ensure_installed = { "lua_ls", "pyright", "ts_ls", "gopls", "tailwindcss", "html", "emmet_ls" },
     automatic_installation = true,
 })
 

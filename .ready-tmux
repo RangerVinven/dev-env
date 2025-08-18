@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
 tmux rename-window "nvim"
-tmux new-window -d -a -n "server"
 tmux new-window -d -a -n "commands"
+tmux new-window -d -a -n "server"
 tmux select-window -t "nvim"
