@@ -186,7 +186,7 @@ config.setup({
 -- Mason Setup (LSP installer)
 require("mason").setup()
 require("mason-lspconfig").setup({
-    ensure_installed = { "lua_ls", "pyright", "ts_ls", "gopls", "tailwindcss", "html", "emmet_ls" },
+    ensure_installed = { "lua_ls", "pyright", "ts_ls", "gopls", "tailwindcss", "html", "emmet_ls", "dockerls" },
     automatic_installation = true,
 })
 
@@ -198,6 +198,7 @@ lspconfig.ts_ls.setup({})
 lspconfig.gopls.setup({})
 lspconfig.tailwindcss.setup({})
 lspconfig.html.setup({}) 
+lspconfig.dockerls.setup({}) 
 lspconfig.emmet_ls.setup({ 
     filetypes = { "html", "typescriptreact", "javascriptreact", "css", "sass", "scss", "less" },
 })

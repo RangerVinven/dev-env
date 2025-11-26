@@ -17,6 +17,7 @@ exec_always --no-startup-id ~/.config/polybar/launch_polybar.sh
 exec_always xrandr --output DP-5 --mode 2560x1440
 exec_always --no-startup-id feh --bg-scale ~/.config/backgrounds/nice-blue-background.png
 bindsym $mod+space exec rofi -show combi
+# bindsym $mod+Shift+s exec "scrot -s /tmp/s.png && xclip -selection clipboard -t image/png -i /tmp/s.png"
 
 # Sets up gaps between windows
 gaps inner 10
