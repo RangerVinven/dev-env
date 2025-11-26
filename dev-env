@@ -53,6 +53,9 @@ copy_file() {
 	execute cp -r $from $to/$name
 }
 
+execute mkdir -p "$HOME/.config"
+execute mkdir -p "$HOME/.local"
+
 copy_dir .config $HOME/.config
 copy_dir .local $HOME/.local
 copy_file .ready-tmux $HOME
