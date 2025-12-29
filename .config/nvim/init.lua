@@ -104,7 +104,7 @@ local plugins = {
         "williamboman/mason-lspconfig.nvim",
         dependencies = { "williamboman/mason.nvim", "neovim/nvim-lspconfig" },
     },
-
+    { "tpope/vim-fugitive" },
     {
         "hrsh7th/nvim-cmp",
         event = "InsertEnter",
@@ -129,7 +129,6 @@ local plugins = {
         "ThePrimeagen/harpoon",
     },
     { "mfussenegger/nvim-jdtls"}
-
 }
 local opts = {}
 
@@ -190,19 +189,31 @@ require("mason-lspconfig").setup({
     automatic_installation = true,
 })
 
--- LSP Configurations
-local lspconfig = require("lspconfig")
-lspconfig.lua_ls.setup({})
-lspconfig.pyright.setup({})
-lspconfig.ts_ls.setup({}) 
-lspconfig.gopls.setup({})
-lspconfig.tailwindcss.setup({})
-lspconfig.html.setup({}) 
-lspconfig.dockerls.setup({}) 
-lspconfig.emmet_ls.setup({ 
-    filetypes = { "html", "typescriptreact", "javascriptreact", "css", "sass", "scss", "less" },
-})
+-- Capability to link the completion engine (cmp) with the LSP
+local capabilities = require('cmp_nvim_lsp').default_capabilities()
 
+-- Mason Setup (LSP installer)
+require("mason").setup()
+require("mason-lspconfig").setup({
+    ensure_installed = { "lua_ls", "pyright", "ts_ls", "gopls", "tailwindcss", "html", "emmet_ls", "dockerls" },
+    automatic_installation = true,
+    handlers = {
+        -- The default handler: setup every server with default capabilities
+        function(server_name)
+            require("lspconfig")[server_name].setup({
+                capabilities = capabilities
+            })
+        end,
+
+        -- Specific handler for emmet_ls (since you had custom filetypes)
+        ["emmet_ls"] = function()
+            require("lspconfig").emmet_ls.setup({
+                capabilities = capabilities,
+                filetypes = { "html", "typescriptreact", "javascriptreact", "css", "sass", "scss", "less" },
+            })
+        end,
+    }
+})
 
 -- nvim-cmp (Completion) Setup
 local cmp = require("cmp")

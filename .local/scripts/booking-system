@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+
+# Paths to your projects
+API_PATH="$HOME/Documents/Projects/Java/Booking-System-API"
+FLUTTER_PATH="$HOME/Documents/Projects/Flutter/booking_system_app"
+WEB_PATH="$HOME/Documents/Projects/NextJS/booking-system-website"
+
+# Generic function to setup sessions
+# Usage: setup_session "PATH" "MAIN_CMD" ["SECONDARY_CMD"]
+setup_session() {
+    local path=$1
+    local main_cmd=$2
+    local secondary_cmd=$3 # Optional 3rd argument
+    local session_name=$(basename "$path")
+
+    # Only create if it doesn't exist
+    if ! tmux has-session -t="$session_name" 2> /dev/null; then
+        # 1. Create session with 'nvim' window
+        tmux new-session -d -s "$session_name" -c "$path" -n "nvim"
+        tmux send-keys -t "${session_name}:nvim" "nvim" C-m
+
+        # 2. Create 'server' window
+        tmux new-window -t "$session_name" -n "server" -c "$path"
+
+        if [[ -n "$secondary_cmd" ]]; then
+            # If we have a 2nd command, split the window Horizontally (-h)
+            # This creates a Right pane (index 1), and focus moves there automatically.
+            tmux split-window -h -t "${session_name}:server" -c "$path"
+
+            # 1. Run Secondary Command (Stripe) FIRST in Right Pane (1)
+            tmux send-keys -t "${session_name}:server.1" "$secondary_cmd" C-m
+            
+            # 2. Run Main Command (Spring Boot) SECOND in Left Pane (0)
+            tmux send-keys -t "${session_name}:server.0" "$main_cmd" C-m
+
+            # 3. Move focus back to the Left Pane (Spring Boot)
+            tmux select-pane -t "${session_name}:server.0"
+        else
+            # Otherwise just run the main command
+            tmux send-keys -t "${session_name}:server" "$main_cmd" C-m
+        fi
+
+        # 3. Create 'commands' window
+        tmux new-window -t "$session_name" -n "commands" -c "$path"
+
+        # Return focus to nvim so it's ready when you enter
+        tmux select-window -t "${session_name}:nvim"
+    fi
+}
+
+# --- 1. Setup Sessions ---
+
+# API: Docker + Maven (Left) AND Stripe (Right)
+setup_session "$API_PATH" \
+    "docker compose up --build -d && mvn clean spring-boot:run" \
+    "stripe listen --forward-to localhost:4242/webhook"
+
+# Website: NextJS
+setup_session "$WEB_PATH" "npm run dev"
+
+# Flutter: App
+setup_session "$FLUTTER_PATH" "flutter run -d web-server --web-port=5000"
+
+# --- 2. Orchestrate Switching ---
+
+API_SESSION=$(basename "$API_PATH")
+WEB_SESSION=$(basename "$WEB_PATH")
+FLUTTER_SESSION=$(basename "$FLUTTER_PATH")
+
+if [[ -z "$TMUX" ]]; then
+    # Outside tmux: Start by attaching to Flutter
+    tmux attach-session -t "$FLUTTER_SESSION"
+else
+    # Inside tmux: Switch order to set up History for Ctrl-L
+    tmux switch-client -t "$WEB_SESSION"
+    tmux switch-client -t "$API_SESSION"     # This becomes 'Last'
+    tmux switch-client -t "$FLUTTER_SESSION" # This is 'Current'
+fi

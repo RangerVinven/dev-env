@@ -15,7 +15,7 @@ exec_always --no-startup-id picom
 exec_always --no-startup-id killall polybar
 exec_always --no-startup-id ~/.config/polybar/launch_polybar.sh
 exec_always xrandr --output DP-5 --mode 2560x1440
-exec_always --no-startup-id feh --bg-scale ~/.config/backgrounds/nice-blue-background.png
+exec_always --no-startup-id feh --bg-scale ~/.config/backgrounds/christmas-dark.jpeg
 bindsym $mod+space exec rofi -show combi
 # bindsym $mod+Shift+s exec "scrot -s /tmp/s.png && xclip -selection clipboard -t image/png -i /tmp/s.png"
 
