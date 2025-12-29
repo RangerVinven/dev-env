@@ -52,7 +52,7 @@ setup_session() {
 
 # API: Docker + Maven (Left) AND Stripe (Right)
 setup_session "$API_PATH" \
-    "docker compose up --build -d && mvn clean spring-boot:run" \
+    "docker compose up --build -d && mvn clean test && mvn clean spring-boot:run" \
     "stripe listen --forward-to localhost:4242/webhook"
 
 # Website: NextJS
