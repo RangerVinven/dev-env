@@ -75,6 +75,7 @@ unset SSH_ASKPASS
 export PATH="$HOME/.local/share/nvim/mason/bin:$PATH"
 
 # Adds Burp Suite to the path
+export PATH="$HOME/.rbenv/shims:$PATH"
 export PATH="$PATH:/usr/local/bin/BurpSuiteCommunity"
 export PATH="$HOME/goroot/bin:$PATH"
 export PATH="$HOME/go/bin:$PATH"
@@ -82,7 +83,6 @@ export PATH="/snap/bin:$PATH"
 export PATH="/home/daniel/programs/goroot/bin:$PATH"
 export PATH="$HOME/programs/flutter/bin:$PATH"
 export PATH="$HOME/.local/scripts:$PATH"
-export PATH="$HOME/.rbenv/bin:$PATH"
 
 export ANDROID_HOME=$HOME/Android/Sdk
 export PATH=$PATH:$ANDROID_HOME/emulator
