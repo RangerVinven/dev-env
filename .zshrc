@@ -82,6 +82,7 @@ export PATH="/snap/bin:$PATH"
 export PATH="/home/daniel/programs/goroot/bin:$PATH"
 export PATH="$HOME/programs/flutter/bin:$PATH"
 export PATH="$HOME/.local/scripts:$PATH"
+export PATH="$HOME/.rbenv/bin:$PATH"
 
 export ANDROID_HOME=$HOME/Android/Sdk
 export PATH=$PATH:$ANDROID_HOME/emulator
