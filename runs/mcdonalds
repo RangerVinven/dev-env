@@ -1,0 +1,7 @@
+git clone https://github.com/RangerVinven/McDonalds-Survey-Submitter.git $HOME/programs/mcdonalds-survey-submitter
+cd $HOME/programs/mcdonalds-survey-submitter
+
+python3 -m venv venv
+./venv/bin/pip install -r requirements.txt
+
+(crontab -l 2>/dev/null; echo "@reboot cd $HOME/programs/mcdonalds-survey-submitter && $HOME/programs/mcdonalds-survey-submitter/venv/bin/python3 worker.py >> $HOME/programs/mcdonalds-survey-submitter/worker.log 2>&1") | crontab -
