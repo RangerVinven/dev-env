@@ -4,4 +4,4 @@ cd $HOME/programs/mcdonalds-survey-submitter
 python3 -m venv venv
 ./venv/bin/pip install -r requirements.txt
 
-(crontab -l 2>/dev/null; echo "@reboot sleep 10 && cd $HOME/programs/mcdonalds-survey-submitter && DISPLAY=:0 $HOME/programs/mcdonalds-survey-submitter/venv/bin/python3 -u worker.py >> $HOME/programs/mcdonalds-survey-submitter/worker.log 2>&1") | crontab -
+(crontab -l 2>/dev/null; echo "@reboot sleep 60 && cd $HOME/programs/mcdonalds-survey-submitter && DISPLAY=:0 $HOME/programs/mcdonalds-survey-submitter/venv/bin/python3 -u worker.py >> $HOME/programs/mcdonalds-survey-submitter/worker.log 2>&1") | crontab -
