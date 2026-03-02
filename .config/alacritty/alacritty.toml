@@ -33,6 +33,11 @@ key = "Down"
 mods = "Control"
 chars = "\u001b[1;5B"
 
+# Sets control-enter to be the same as enter
+[[keyboard.bindings]]
+chars = "\u001b[13;5u"
+key = "Enter"
+mods = "Control"
 
 # Sets copy-paste to control-c and control-v
 # and has control-shift-c do the keyboard interrupt

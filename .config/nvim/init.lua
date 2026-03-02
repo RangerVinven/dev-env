@@ -128,7 +128,14 @@ local plugins = {
     {
         "ThePrimeagen/harpoon",
     },
-    { "mfussenegger/nvim-jdtls"}
+    { "mfussenegger/nvim-jdtls"},
+    {
+        "github/copilot.vim",
+        config = function()
+            -- Disable Copilot by default or set specific filetypes
+            vim.g.copilot_enabled = true 
+        end
+    },
 }
 local opts = {}
 
