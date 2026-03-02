@@ -33,10 +33,14 @@ key = "Down"
 mods = "Control"
 chars = "\u001b[1;5B"
 
-# Sets control-enter to be the same as enter
 [[keyboard.bindings]]
-chars = "\u001b[13;5u"
-key = "Enter"
+chars = "\u001b\t"
+key = "Tab"
+mods = "Alt"
+
+[[keyboard.bindings]]
+chars = "\u001b[9;5u"
+key = "Tab"
 mods = "Control"
 
 # Sets copy-paste to control-c and control-v

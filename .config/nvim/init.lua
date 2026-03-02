@@ -132,8 +132,8 @@ local plugins = {
     {
         "github/copilot.vim",
         config = function()
-            -- Disable Copilot by default or set specific filetypes
-            vim.g.copilot_enabled = true 
+            -- This must be set before the plugin loads or in the config
+            vim.g.copilot_no_tab_map = true
         end
     },
 }
@@ -291,6 +291,14 @@ vim.keymap.set('n', '<leader>ne', vim.diagnostic.goto_next, { desc = 'Show next 
 vim.keymap.set('n', '<leader>pe', vim.diagnostic.goto_prev, { desc = 'Show previous error message' })
 vim.keymap.set('n', '<leader>pe', vim.diagnostic.goto_prev, { desc = 'Show previous error message' })
 
+-- Use Alt-Tab to accept Copilot suggestions
+vim.keymap.set('i', '<M-Tab>', 'copilot#Accept("\\<CR>")', {
+    expr = true,
+    replace_keycodes = false
+})
+
+-- Tell Copilot NOT to use the standard Tab (so it doesn't break nvim-cmp)
+vim.g.copilot_no_tab_map = true
 
 -- Remaps to use the system clipboard
 -- Always yank, paste, delete with system clipboard
