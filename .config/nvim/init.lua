@@ -130,10 +130,20 @@ local plugins = {
     },
     { "mfussenegger/nvim-jdtls"},
     {
-        "github/copilot.vim",
+        "zbirenbaum/copilot.lua",
+        cmd = "Copilot",
+        event = "InsertEnter",
         config = function()
-            -- This must be set before the plugin loads or in the config
-            vim.g.copilot_no_tab_map = true
+            require("copilot").setup({
+                suggestion = { enabled = false },
+                panel = { enabled = false },
+            })
+        end,
+    },
+    {
+        "zbirenbaum/copilot-cmp",
+        config = function()
+            require("copilot_cmp").setup()
         end
     },
 }
@@ -234,9 +244,10 @@ cmp.setup({
     mapping = cmp.mapping.preset.insert({
         ["<Tab>"] = cmp.mapping.select_next_item(),
         ["<S-Tab>"] = cmp.mapping.select_prev_item(),
-        ["<CR>"] = cmp.mapping.confirm({ select = true }),
+        ["<CR>"] = cmp.mapping.confirm({ select = false }),
     }),
     sources = cmp.config.sources({
+        { name = "copilot" },
         { name = "nvim_lsp" },
         { name = "luasnip" },
         { name = "buffer" },
@@ -291,14 +302,7 @@ vim.keymap.set('n', '<leader>ne', vim.diagnostic.goto_next, { desc = 'Show next 
 vim.keymap.set('n', '<leader>pe', vim.diagnostic.goto_prev, { desc = 'Show previous error message' })
 vim.keymap.set('n', '<leader>pe', vim.diagnostic.goto_prev, { desc = 'Show previous error message' })
 
--- Use Alt-Tab to accept Copilot suggestions
-vim.keymap.set('i', '<M-Tab>', 'copilot#Accept("\\<CR>")', {
-    expr = true,
-    replace_keycodes = false
-})
-
--- Tell Copilot NOT to use the standard Tab (so it doesn't break nvim-cmp)
-vim.g.copilot_no_tab_map = true
+-- Old Copilot mapping removed because we're using copilot-cmp now
 
 -- Remaps to use the system clipboard
 -- Always yank, paste, delete with system clipboard
