@@ -113,7 +113,8 @@ local plugins = {
             "hrsh7th/cmp-buffer",     -- buffer words
             "hrsh7th/cmp-path",       -- file paths
             "L3MON4D3/LuaSnip",       -- snippet engine
-            "saadparwaiz1/cmp_luasnip"  -- luasnip source
+            "saadparwaiz1/cmp_luasnip",  -- luasnip source
+            "zbirenbaum/copilot-cmp",   -- copilot source
         },
     },
 
@@ -136,7 +137,7 @@ local plugins = {
         config = function()
             require("copilot").setup({
                 suggestion = { enabled = false },
-                panel = { enabled = false },
+                panel = { enabled = true },
             })
         end,
     },
@@ -235,7 +236,13 @@ require("mason-lspconfig").setup({
 -- nvim-cmp (Completion) Setup
 local cmp = require("cmp")
 local luasnip = require("luasnip")
+
 cmp.setup({
+    completion = {
+        -- noselect is the key here: it prevents the menu from automatically
+        -- highlighting the first item. No highlight = no ghost text.
+        completeopt = "menu,menuone,noselect",
+    },
     snippet = {
         expand = function(args)
             luasnip.lsp_expand(args.body)
@@ -254,6 +261,13 @@ cmp.setup({
         { name = "path" },
     }),
 })
+
+-- Make the autocomplete menu stand out (darker background, solid)
+vim.api.nvim_set_hl(0, "Pmenu", { bg = "#181825", fg = "#cdd6f4" })
+vim.api.nvim_set_hl(0, "PmenuSel", { bg = "#313244", fg = "NONE", bold = true })
+
+-- Keymap to open the Copilot Panel (shows multiple full suggestions)
+vim.keymap.set('n', '<leader>cp', ':Copilot panel<CR>', { desc = 'Open Copilot Panel' })
 
 -- Java LSP Setup
 local jdtls = require('jdtls')
@@ -300,20 +314,8 @@ vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, { desc = 'Code action
 vim.keymap.set('n', '<C-e>', vim.diagnostic.open_float, { desc = 'Show error message' })
 vim.keymap.set('n', '<leader>ne', vim.diagnostic.goto_next, { desc = 'Show next error message' })
 vim.keymap.set('n', '<leader>pe', vim.diagnostic.goto_prev, { desc = 'Show previous error message' })
-vim.keymap.set('n', '<leader>pe', vim.diagnostic.goto_prev, { desc = 'Show previous error message' })
-
--- Old Copilot mapping removed because we're using copilot-cmp now
 
 -- Remaps to use the system clipboard
--- Always yank, paste, delete with system clipboard
--- vim.keymap.set('n', 'y', '"+y')
--- vim.keymap.set('v', 'y', '"+y')
--- vim.keymap.set('n', 'yy', '"+yy')
--- vim.keymap.set('n', 'p', '"+p')
--- vim.keymap.set('n', 'P', '"+P')
--- vim.keymap.set('n', 'd', '"+d')
--- vim.keymap.set('v', 'd', '"+d')
-
 vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv")
 vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv")
 
@@ -329,10 +331,4 @@ vim.keymap.set("n", "<leader>Y", "\"+Y")
 
 vim.keymap.set("n", "<C-f>", "<cmd>silent !tmux neww ts<CR>")
 
--- vim.keymap.set("n", "<C-k>", "<cmd>cnext<CR>zz")
--- vim.keymap.set("n", "<C-j>", "<cmd>cprev<CR>zz")
--- vim.keymap.set("n", "<leader>k", "<cmd>lnext<CR>zz")
--- vim.keymap.set("n", "<leader>j", "<cmd>lprev<CR>zz")
-
 vim.keymap.set("n", "<leader>s", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]])
-
