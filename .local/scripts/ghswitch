@@ -1,0 +1,380 @@
+#!/usr/bin/env bash
+#
+# ghswitch - switch between multiple GitHub accounts (HTTPS-token based).
+#
+# Each account stores: username, personal access token, git user.name, git user.email.
+# Switching rewrites the github.com line in ~/.git-credentials and updates the
+# global git identity, so every repo on the system uses the chosen account.
+#
+# Usage:
+#   ghswitch                 # interactive: pick an account to switch to
+#   ghswitch switch [name]   # switch the GLOBAL account (affects every shell/repo)
+#   ghswitch shell [name]    # pin an account to THIS shell only; use via:
+#                            #   eval "$(ghswitch shell work)"   (off: shell off)
+#   ghswitch add             # add a new account (interactive)
+#   ghswitch edit [name]     # change a saved account's username/token/name/email
+#   ghswitch list            # list saved accounts
+#   ghswitch current         # show the currently active account
+#   ghswitch import          # save the account currently in ~/.git-credentials
+#   ghswitch remove [name]   # delete a saved account
+#   ghswitch help            # show this help
+
+set -euo pipefail
+
+CONFIG_DIR="${GHSWITCH_HOME:-$HOME/.config/gh-account-switcher}"
+ACCOUNTS_DIR="$CONFIG_DIR/accounts"
+GIT_PROFILE_DIR="$CONFIG_DIR/git"
+CRED_FILE="$HOME/.git-credentials"
+HOST="github.com"
+
+# --- colours (disabled when not a tty) ----------------------------------------
+if [ -t 1 ]; then
+  C_RESET=$'\033[0m'; C_BOLD=$'\033[1m'; C_GREEN=$'\033[32m'
+  C_YELLOW=$'\033[33m'; C_CYAN=$'\033[36m'; C_RED=$'\033[31m'
+else
+  C_RESET=; C_BOLD=; C_GREEN=; C_YELLOW=; C_CYAN=; C_RED=
+fi
+
+info()  { printf '%s\n' "$*"; }
+ok()    { printf '%s%s%s\n' "$C_GREEN" "$*" "$C_RESET"; }
+warn()  { printf '%s%s%s\n' "$C_YELLOW" "$*" "$C_RESET" >&2; }
+err()   { printf '%s%s%s\n' "$C_RED" "$*" "$C_RESET" >&2; }
+die()   { err "$*"; exit 1; }
+
+ensure_dirs() {
+  mkdir -p "$ACCOUNTS_DIR"
+  chmod 700 "$CONFIG_DIR" "$ACCOUNTS_DIR" 2>/dev/null || true
+}
+
+account_file() { printf '%s/%s.conf' "$ACCOUNTS_DIR" "$1"; }
+
+list_accounts() {
+  [ -d "$ACCOUNTS_DIR" ] || return 0
+  local f name
+  for f in "$ACCOUNTS_DIR"/*.conf; do
+    [ -e "$f" ] || continue
+    name="$(basename "$f" .conf)"
+    printf '%s\n' "$name"
+  done
+}
+
+# Read a single key=value field from an account file (value may contain '=').
+read_field() {
+  local file="$1" key="$2" line
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in
+      "$key="*) printf '%s' "${line#"$key="}"; return 0 ;;
+    esac
+  done < "$file"
+  return 1
+}
+
+# Username currently active in ~/.git-credentials for github.com (if any).
+current_username() {
+  [ -f "$CRED_FILE" ] || return 1
+  local line
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in
+      https://*@"$HOST"|https://*@"$HOST"/*)
+        line="${line#https://}"          # user:token@github.com
+        line="${line%%@*}"               # user:token
+        printf '%s' "${line%%:*}"        # user
+        return 0 ;;
+    esac
+  done < "$CRED_FILE"
+  return 1
+}
+
+# --- commands -----------------------------------------------------------------
+
+cmd_list() {
+  local names current
+  names="$(list_accounts)"
+  current="$(current_username 2>/dev/null || true)"
+  if [ -z "$names" ]; then
+    warn "No accounts saved yet. Add one with: ghswitch add"
+    [ -n "$current" ] && info "(Currently active in git-credentials: $C_BOLD$current$C_RESET — run 'ghswitch import' to save it.)"
+    return 0
+  fi
+  info "${C_BOLD}Saved GitHub accounts:${C_RESET}"
+  local name user marker
+  while IFS= read -r name; do
+    [ -n "$name" ] || continue
+    user="$(read_field "$(account_file "$name")" username || echo '?')"
+    marker="  "
+    [ -n "$current" ] && [ "$user" = "$current" ] && marker="${C_GREEN}* ${C_RESET}"
+    printf '%s%s%s%s (%s)\n' "$marker" "$C_CYAN" "$name" "$C_RESET" "$user"
+  done <<< "$names"
+  [ -n "$current" ] || warn "No github.com entry currently in ~/.git-credentials."
+}
+
+cmd_current() {
+  # A per-shell override (GIT_CONFIG_GLOBAL) wins over the global credential file.
+  if [ -n "${GIT_CONFIG_GLOBAL:-}" ] && [ -f "$GIT_CONFIG_GLOBAL" ]; then
+    local cfg="$GIT_CONFIG_GLOBAL" credfile shelluser
+    credfile="$(sed -n 's/.*helper = store --file=//p' "$cfg" | tail -n1)"
+    if [ -n "$credfile" ] && [ -f "$credfile" ]; then
+      shelluser="$(sed -E 's#https://([^:]+):.*#\1#' "$credfile" | tail -n1)"
+      ok "Active in THIS shell (override): $shelluser"
+      info "  via GIT_CONFIG_GLOBAL=$cfg"
+      return 0
+    fi
+  fi
+  local user
+  if user="$(current_username 2>/dev/null)"; then
+    ok "Active GitHub account (global): $user"
+  else
+    warn "No github.com credential is currently active."
+    return 1
+  fi
+}
+
+prompt() { # prompt VAR "Message" [default]
+  local __var="$1" __msg="$2" __def="${3:-}" __in
+  if [ -n "$__def" ]; then
+    read -r -p "$__msg [$__def]: " __in || true
+    __in="${__in:-$__def}"
+  else
+    read -r -p "$__msg: " __in || true
+  fi
+  printf -v "$__var" '%s' "$__in"
+}
+
+cmd_add() {
+  ensure_dirs
+  local name username token gitname gitemail
+  prompt name     "Label for this account (e.g. personal, work)"
+  [ -n "$name" ] || die "A label is required."
+  case "$name" in */*|*' '*) die "Label must not contain spaces or slashes." ;; esac
+  local file; file="$(account_file "$name")"
+  if [ -e "$file" ]; then
+    prompt _overwrite "Account '$name' exists. Overwrite? (y/N)" "N"
+    case "$_overwrite" in y|Y) ;; *) die "Aborted." ;; esac
+  fi
+  prompt username "GitHub username"
+  [ -n "$username" ] || die "Username is required."
+  # Token: read silently
+  read -r -s -p "Personal access token (input hidden): " token; echo
+  [ -n "$token" ] || die "Token is required."
+  prompt gitname  "git user.name" "$(git config --global user.name 2>/dev/null || echo "$username")"
+  prompt gitemail "git user.email"
+
+  umask 077
+  {
+    printf 'username=%s\n' "$username"
+    printf 'token=%s\n'    "$token"
+    printf 'name=%s\n'     "$gitname"
+    printf 'email=%s\n'    "$gitemail"
+  } > "$file"
+  chmod 600 "$file"
+  ok "Saved account '$name'."
+  prompt _now "Switch to it now? (Y/n)" "Y"
+  case "$_now" in n|N) ;; *) do_switch "$name" ;; esac
+}
+
+cmd_edit() {
+  ensure_dirs
+  local name="${1:-}"
+  [ -n "$name" ] || name="$(pick_account)" || exit 1
+  local file; file="$(account_file "$name")"
+  [ -f "$file" ] || die "No such account: $name"
+
+  local cur_user cur_token cur_name cur_email
+  cur_user="$(read_field "$file" username || true)"
+  cur_token="$(read_field "$file" token || true)"
+  cur_name="$(read_field "$file" name || true)"
+  cur_email="$(read_field "$file" email || true)"
+
+  local username token gitname gitemail
+  prompt username "GitHub username" "$cur_user"
+  read -r -s -p "Personal access token (blank = keep existing): " token; echo
+  [ -n "$token" ] || token="$cur_token"
+  prompt gitname  "git user.name"  "$cur_name"
+  prompt gitemail "git user.email" "$cur_email"
+
+  umask 077
+  {
+    printf 'username=%s\n' "$username"
+    printf 'token=%s\n'    "$token"
+    printf 'name=%s\n'     "$gitname"
+    printf 'email=%s\n'    "$gitemail"
+  } > "$file"
+  chmod 600 "$file"
+  ok "Updated account '$name'."
+  if [ "$(current_username 2>/dev/null || true)" = "$cur_user" ]; then
+    prompt _now "This account is active — re-apply the changes now? (Y/n)" "Y"
+    case "$_now" in n|N) ;; *) do_switch "$name" ;; esac
+  fi
+}
+
+cmd_import() {
+  ensure_dirs
+  local user
+  user="$(current_username)" || die "No github.com credential found in ~/.git-credentials to import."
+  local token line
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in
+      https://"$user":*@"$HOST"*)
+        line="${line#https://"$user":}"
+        token="${line%%@*}" ;;
+    esac
+  done < "$CRED_FILE"
+  [ -n "${token:-}" ] || die "Could not read the token for '$user'."
+
+  local name gitname gitemail
+  prompt name "Label for this current account ($user)" "personal"
+  case "$name" in */*|*' '*) die "Label must not contain spaces or slashes." ;; esac
+  gitname="$(git config --global user.name 2>/dev/null || echo "$user")"
+  gitemail="$(git config --global user.email 2>/dev/null || echo '')"
+
+  umask 077
+  {
+    printf 'username=%s\n' "$user"
+    printf 'token=%s\n'    "$token"
+    printf 'name=%s\n'     "$gitname"
+    printf 'email=%s\n'    "$gitemail"
+  } > "$(account_file "$name")"
+  chmod 600 "$(account_file "$name")"
+  ok "Imported current account as '$name' ($user)."
+}
+
+# Pick an account name interactively (fzf if present, else numbered menu).
+pick_account() {
+  local names; names="$(list_accounts)"
+  [ -n "$names" ] || { err "No accounts saved. Run: ghswitch add"; return 1; }
+  if command -v fzf >/dev/null 2>&1; then
+    printf '%s\n' "$names" | fzf --prompt="Switch to > " --height=40% --reverse \
+      --header="Select a GitHub account" || return 1
+  else
+    local arr=() name
+    while IFS= read -r name; do [ -n "$name" ] && arr+=("$name"); done <<< "$names"
+    local PS3="Select account #: "
+    select name in "${arr[@]}"; do
+      [ -n "${name:-}" ] && { printf '%s' "$name"; return 0; }
+    done
+    return 1
+  fi
+}
+
+do_switch() {
+  local name="$1" file; file="$(account_file "$name")"
+  [ -f "$file" ] || die "No such account: $name"
+  local username token gitname gitemail
+  username="$(read_field "$file" username)" || die "Corrupt account file: $file"
+  token="$(read_field "$file" token)"       || die "Corrupt account file: $file"
+  gitname="$(read_field "$file" name || true)"
+  gitemail="$(read_field "$file" email || true)"
+
+  # Rewrite ~/.git-credentials: drop existing github.com lines, append the new one.
+  umask 077
+  local tmp; tmp="$(mktemp "${CRED_FILE}.XXXXXX")"
+  if [ -f "$CRED_FILE" ]; then
+    while IFS= read -r line || [ -n "$line" ]; do
+      case "$line" in
+        https://*@"$HOST"|https://*@"$HOST"/*) : ;;   # drop old github.com creds
+        *) printf '%s\n' "$line" >> "$tmp" ;;
+      esac
+    done < "$CRED_FILE"
+  fi
+  printf 'https://%s:%s@%s\n' "$username" "$token" "$HOST" >> "$tmp"
+  mv "$tmp" "$CRED_FILE"
+  chmod 600 "$CRED_FILE"
+
+  # Make sure git actually uses the store helper (without duplicating it or
+  # clobbering any other helpers the user may rely on).
+  if ! git config --global --get-all credential.helper 2>/dev/null | grep -qx store; then
+    git config --global --add credential.helper store
+  fi
+  # --replace-all collapses any pre-existing duplicate values into a single one,
+  # which a bare 'git config' would refuse to overwrite.
+  [ -n "$gitname" ]  && git config --global --replace-all user.name  "$gitname"
+  [ -n "$gitemail" ] && git config --global --replace-all user.email "$gitemail"
+
+  ok "Switched to '$name' → GitHub user '$username'"
+  [ -n "$gitname$gitemail" ] && info "  git identity: ${gitname} <${gitemail}>"
+}
+
+cmd_switch() {
+  local name="${1:-}"
+  [ -n "$name" ] || name="$(pick_account)" || exit 1
+  do_switch "$name"
+}
+
+# Build a dedicated, self-contained git config + credential file for one account.
+# The config includes the user's real ~/.gitconfig (so editor/aliases survive),
+# then resets the credential helper to point ONLY at this account's token and
+# overrides the commit identity. Prints the path to the generated config.
+materialize() {
+  local name="$1" file; file="$(account_file "$name")"
+  [ -f "$file" ] || die "No such account: $name"
+  local username token gitname gitemail
+  username="$(read_field "$file" username)" || die "Corrupt account file: $file"
+  token="$(read_field "$file" token)"       || die "Corrupt account file: $file"
+  gitname="$(read_field "$file" name || true)"
+  gitemail="$(read_field "$file" email || true)"
+
+  mkdir -p "$GIT_PROFILE_DIR"; chmod 700 "$GIT_PROFILE_DIR" 2>/dev/null || true
+  local cred="$GIT_PROFILE_DIR/$name.credentials"
+  local cfg="$GIT_PROFILE_DIR/$name.gitconfig"
+  umask 077
+  printf 'https://%s:%s@%s\n' "$username" "$token" "$HOST" > "$cred"; chmod 600 "$cred"
+  {
+    printf '# Generated by ghswitch for account: %s. Do not edit by hand.\n' "$name"
+    printf '[include]\n\tpath = %s/.gitconfig\n' "$HOME"
+    printf '[credential]\n\thelper =\n\thelper = store --file=%s\n' "$cred"
+    printf '[user]\n'
+    [ -n "$gitname" ]  && printf '\tname = %s\n'  "$gitname"
+    [ -n "$gitemail" ] && printf '\temail = %s\n' "$gitemail"
+  } > "$cfg"; chmod 600 "$cfg"
+  printf '%s' "$cfg"
+}
+
+# Print shell code (for `eval`) that pins THIS shell to an account, leaving every
+# other shell/session untouched. Enables different accounts side by side.
+cmd_shell() {
+  local name="${1:-}"
+  case "$name" in
+    off|none|unset|"--off")
+      printf 'unset GIT_CONFIG_GLOBAL\n'
+      warn "ghswitch: this shell's account override removed (back to the global account)."
+      return 0 ;;
+  esac
+  [ -n "$name" ] || name="$(pick_account)" || exit 1
+  local cfg user
+  cfg="$(materialize "$name")" || exit 1
+  user="$(read_field "$(account_file "$name")" username || echo '?')"
+  printf 'export GIT_CONFIG_GLOBAL=%q\n' "$cfg"
+  warn "ghswitch: THIS shell now uses '$name' ($user). Other shells are unaffected."
+  warn "          Revert with: eval \"\$(ghswitch shell off)\""
+}
+
+cmd_remove() {
+  local name="${1:-}"
+  [ -n "$name" ] || name="$(pick_account)" || exit 1
+  local file; file="$(account_file "$name")"
+  [ -f "$file" ] || die "No such account: $name"
+  prompt _c "Delete saved account '$name'? (y/N)" "N"
+  case "$_c" in y|Y) rm -f "$file"; ok "Removed '$name'.";; *) info "Kept '$name'.";; esac
+}
+
+cmd_help() { sed -n '2,/^set -/p' "$0" | sed 's/^# \{0,1\}//; /^set -/d'; }
+
+main() {
+  ensure_dirs
+  local cmd="${1:-switch}"; shift || true
+  case "$cmd" in
+    switch|sw)        cmd_switch "${1:-}" ;;
+    shell|env|pin)    cmd_shell "${1:-}" ;;
+    add|new)          cmd_add ;;
+    edit|update)      cmd_edit "${1:-}" ;;
+    list|ls)          cmd_list ;;
+    current|cur|who)  cmd_current ;;
+    import)           cmd_import ;;
+    remove|rm|delete) cmd_remove "${1:-}" ;;
+    help|-h|--help)   cmd_help ;;
+    *)                # treat unknown arg as an account name to switch to
+                      do_switch "$cmd" ;;
+  esac
+}
+
+main "$@"

@@ -64,6 +64,10 @@ zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
 # Aliases
 alias ls='ls --color'
 
+# ghswitch: pin a GitHub account to THIS shell only (so concurrent tmux/Claude
+# sessions can each use a different account). `ghshell work`, `ghshell off`.
+ghshell() { eval "$(command ghswitch shell "$@")"; }
+
 # If i3 is running, setup my monitor
 # if pgrep -x "i3" > /dev/null; then
 #     xrandr --output HDMI-1 --auto --left-of DP-3
