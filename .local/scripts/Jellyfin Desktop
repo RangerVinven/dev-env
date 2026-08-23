@@ -1,1 +1,2 @@
-jellyfin
+#!/usr/bin/env bash
+exec flatpak run org.jellyfin.JellyfinDesktop "$@"
