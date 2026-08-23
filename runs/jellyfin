@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+# Ensure flatpak is installed and flathub remote is configured
+sudo dnf install -y flatpak
+flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+
+# Install Jellyfin Desktop
+flatpak install -y flathub org.jellyfin.JellyfinDesktop
