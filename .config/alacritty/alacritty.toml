@@ -60,3 +60,8 @@ key = "C"
 mods = "Control|Shift"
 chars = "\u0003"  # sends ASCII code 3 (Ctrl+C / SIGINT)
 
+
+[[keyboard.bindings]]
+key = "Return"
+mods = "Shift"
+chars = "\u001B\r"

@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+# General development and system utilities
+sudo dnf install -y \
+  ripgrep \
+  htop \
+  p7zip p7zip-plugins unrar \
+  aria2 \
+  fio \
+  visidata \
+  scrot \
+  xclip xsel wl-clipboard \
+  pipx \
+  uv \
+  rust cargo \
+  rbenv ruby-devel rubygem-rails
+
+# Add user to dialout group for microcontrollers and serial debugging
+sudo usermod -aG dialout "$USER"

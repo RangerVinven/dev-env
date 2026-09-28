@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+FONT_DIR="$HOME/.local/share/fonts"
+mkdir -p "$FONT_DIR"
+
+# Download and install Hack Nerd Font (used by Alacritty)
+if ! ls "$FONT_DIR"/HackNerdFont*.ttf >/dev/null 2>&1; then
+    echo "Installing Hack Nerd Font..."
+    tmp_zip=$(mktemp --suffix=.zip)
+    curl -fLo "$tmp_zip" "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Hack.zip"
+    unzip -q -o "$tmp_zip" -d "$FONT_DIR"
+    rm -f "$tmp_zip"
+fi
+
+# Download and install Meslo Nerd Font (used by Polybar and Powerlevel10k)
+if ! ls "$FONT_DIR"/MesloLG*.ttf >/dev/null 2>&1; then
+    echo "Installing Meslo Nerd Font..."
+    tmp_zip=$(mktemp --suffix=.zip)
+    curl -fLo "$tmp_zip" "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Meslo.zip"
+    unzip -q -o "$tmp_zip" -d "$FONT_DIR"
+    rm -f "$tmp_zip"
+fi
+
+fc-cache -f "$FONT_DIR"

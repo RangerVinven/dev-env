@@ -1,0 +1,13 @@
+[Unit]
+Description=Speech-To-Text Main Application
+After=network.target sound.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/daniel/Documents/Projects/Speech-To-Text
+ExecStart=/home/daniel/Documents/Projects/Speech-To-Text/venv/bin/python /home/daniel/Documents/Projects/Speech-To-Text/main.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

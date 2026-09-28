@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
+mkdir -p $HOME/programs
 git clone https://github.com/neovim/neovim.git $HOME/programs/neovim
-sudo dnf install -y cmake gettext lua5.1 liblua5.1-0-dev fzf
+sudo dnf install -y cmake gettext lua5.1 liblua5.1-0-dev fzf xclip xsel wl-clipboard ripgrep
 
 cd $HOME/programs/neovim
 make CMAKE_BUILD_TYPE=RelWithDebInfo

@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+# Ensure flatpak is installed and flathub remote is configured
+sudo dnf install -y flatpak
+flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+
+# Desktop apps
+flatpak install -y flathub com.discordapp.Discord
+flatpak install -y flathub md.obsidian.Obsidian
+flatpak install -y flathub io.dbeaver.DBeaverCommunity
+flatpak install -y flathub com.getpostman.Postman

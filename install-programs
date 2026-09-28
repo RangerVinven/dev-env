@@ -4,7 +4,7 @@ script_dir=$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)
 filter=""
 dry="0"
 
-while [[ $# > 0 ]]; do
+while [[ $# -gt 0 ]]; do
     if [[ $1 == "--dry" ]]; then
         dry="1"
     else
@@ -13,33 +13,95 @@ while [[ $# > 0 ]]; do
     shift
 done
 
+# ANSI color formatting (disabled if redirected or NO_COLOR is set)
+if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then
+    GREEN="\033[1;32m"
+    RED="\033[1;31m"
+    YELLOW="\033[1;33m"
+    BLUE="\033[1;34m"
+    BOLD="\033[1m"
+    RESET="\033[0m"
+else
+    GREEN=""
+    RED=""
+    YELLOW=""
+    BLUE=""
+    BOLD=""
+    RESET=""
+fi
+
 log() {
     if [[ $dry == "1" ]]; then
-        echo "[DRY_RUN]: $@"
+        echo -e "[DRY_RUN]: $@"
     else
-        echo "$@"
+        echo -e "$@"
     fi
 }
 
-execute() {
-    log "execute $@"
-    if [[ $dry == "1" ]]; then
-        return
-    fi
-    "$@"
-}
+cd "$script_dir"
+scripts=$(find ./runs -maxdepth 1 -mindepth 1 -executable -type f | sort)
 
-log "$script_dir -- $filter"
-
-cd $script_dir
-scripts=$(find ./runs -maxdepth 1 -mindepth 1 -executable -type f)
+passed=()
+failed=()
 
 for script in $scripts; do
-    if echo "$script" | grep -qv "$filter"; then
-        log "filtering $script"
+    script_name=$(basename "$script")
+    if echo "$script_name" | grep -qv "$filter"; then
         continue
     fi
 
-    execute $script
+    echo ""
+    log "${BLUE}${BOLD}===> Running: $script_name${RESET}"
+
+    if [[ $dry == "1" ]]; then
+        passed+=("$script_name")
+        continue
+    fi
+
+    # Run the script and record result
+    if "$script"; then
+        passed+=("$script_name")
+    else
+        exit_code=$?
+        failed+=("$script_name (exit code: $exit_code)")
+    fi
 done
+
+# Final Summary Report
+echo ""
+echo "================================================================================"
+echo -e "${BOLD}                           INSTALLATION SUMMARY${RESET}"
+echo "================================================================================"
+
+if [[ $dry == "1" ]]; then
+    echo -e "${YELLOW}[DRY RUN] No commands were actually executed.${RESET}"
+    echo ""
+fi
+
+if [ ${#passed[@]} -gt 0 ]; then
+    echo -e "${GREEN}${BOLD}Successful (${#passed[@]}):${RESET}"
+    for item in "${passed[@]}"; do
+        echo -e "  ${GREEN}✓${RESET} $item"
+    done
+    echo ""
+fi
+
+if [ ${#failed[@]} -gt 0 ]; then
+    echo -e "${RED}${BOLD}Failed (${#failed[@]}):${RESET}"
+    for item in "${failed[@]}"; do
+        echo -e "  ${RED}✗${RESET} $item"
+    done
+    echo ""
+    echo -e "${YELLOW}To investigate or retry any failed installation individually, run:${RESET}"
+    for item in "${failed[@]}"; do
+        name="${item%% *}"
+        echo "  ./install-programs $name"
+    done
+    echo "================================================================================"
+    exit 1
+else
+    echo -e "${GREEN}${BOLD}All executed installations completed successfully!${RESET}"
+    echo "================================================================================"
+fi
+
 

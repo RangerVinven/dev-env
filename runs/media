@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+# Install media players and torrent client
+sudo dnf install -y vlc qbittorrent ffmpeg

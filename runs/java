@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+sudo dnf install -y java-25-openjdk java-25-openjdk-devel

@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+# Mounts home NAS media share on-demand without auto-connecting on boot
+CREDS_FILE="$HOME/.nascreds"
+MOUNT_POINT="/mnt/My NAS/Media"
+SHARE="//192.168.1.245/Media"
+
+if [ ! -f "$CREDS_FILE" ]; then
+    echo "Error: Credentials file not found at $CREDS_FILE"
+    echo "Create $CREDS_FILE (chmod 600) with lines:"
+    echo "  username=YOUR_NAS_USERNAME"
+    echo "  password=YOUR_NAS_PASSWORD"
+    exit 1
+fi
+
+sudo mkdir -p "$MOUNT_POINT"
+if mountpoint -q "$MOUNT_POINT"; then
+    echo "$MOUNT_POINT is already mounted."
+else
+    echo "Mounting $SHARE to $MOUNT_POINT..."
+    sudo mount -t cifs "$SHARE" "$MOUNT_POINT" -o credentials="$CREDS_FILE",uid=$(id -u),gid=$(id -g),iocharset=utf8
+    if [ $? -eq 0 ]; then
+        echo "Successfully mounted $MOUNT_POINT"
+    fi
+fi

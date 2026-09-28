@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+# Install CIFS utilities required for SMB/CIFS network mounts
+sudo dnf install -y cifs-utils
+
+# Create the standard mount point directory
+sudo mkdir -p "/mnt/My NAS/Media"
+
+echo "cifs-utils installed and '/mnt/My NAS/Media' mountpoint prepared."
+echo "Use the 'mount-nas' script (in ~/.local/scripts) when on your home network or VPN to connect."

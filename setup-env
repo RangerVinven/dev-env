@@ -36,10 +36,10 @@ copy_dir() {
     to=$2
 
     pushd $from > /dev/null
-    dirs=$(find . -mindepth 1 -maxdepth 1 -type d)
-    for dir in $dirs; do
-        execute rm -rf $to/$dir
-        execute cp -r $dir $to/$dir
+    entries=$(find . -mindepth 1 -maxdepth 1)
+    for entry in $entries; do
+        execute rm -rf $to/$entry
+        execute cp -r $entry $to/$entry
     done
     popd > /dev/null
 }
@@ -49,12 +49,15 @@ copy_file() {
     to=$2
     name=$(basename $from)
     
-	execute rm $to/$name
+	execute rm -f $to/$name
 	execute cp -r $from $to/$name
 }
 
 execute mkdir -p "$HOME/.config"
 execute mkdir -p "$HOME/.local"
+execute mkdir -p "$HOME/.local/bin"
+execute mkdir -p "$HOME/.local/scripts"
+execute mkdir -p "$HOME/programs"
 
 copy_dir .config $HOME/.config
 copy_dir .local $HOME/.local

@@ -1,0 +1,7 @@
+[Default Applications]
+x-scheme-handler/jetbrains=jetbrainsd.desktop
+x-scheme-handler/terabox=TeraBox.desktop
+application/x-extension-burp=install4j_xnm2ec-BurpSuiteCommunity.desktop
+x-scheme-handler/postman=Postman.desktop
+x-scheme-handler/claude-cli=claude-code-url-handler.desktop
+x-scheme-handler/flywheel-local=Local.desktop

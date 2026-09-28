@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+# Install printer support and drivers
+sudo dnf install -y cups splix
+sudo systemctl enable --now cups.service

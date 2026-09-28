@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+# Configure Tailscale repository if needed
+if [ ! -f /etc/yum.repos.d/tailscale.repo ]; then
+    sudo dnf config-manager addrepo --from-repofile=https://pkgs.tailscale.com/stable/fedora/tailscale.repo
+fi
+
+sudo dnf install -y tailscale
+
+# Enable tailscaled daemon so Tailscale is ready when you choose to connect
+sudo systemctl enable tailscaled
+sudo systemctl start tailscaled
+
+echo "Tailscale is installed and the daemon is active."
+echo "To log in and connect when ready, run: sudo tailscale up"
