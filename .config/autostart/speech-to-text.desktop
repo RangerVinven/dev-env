@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Speech-To-Text
+Comment=Whisper GPU Voice Dictation
+Exec=/bin/bash -c "systemctl --user start speech-to-text.service"
+Terminal=false
+Categories=Utility;
+X-GNOME-Autostart-enabled=true
